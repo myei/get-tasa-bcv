@@ -19,18 +19,26 @@ PARAMETERS = {
         "visibility": "--headless",
         "availables": {
             "-c": 0,
-            "-f": 1 
+            "-f": 1
         }
     }
 }
 
-DRIVER_TO_USE = 0
-if len(argv) > 1 and argv[1] in list(PARAMETERS["browser"]["availables"].keys()):
-    DRIVER_TO_USE = PARAMETERS["browser"]["availables"][argv[1]]
+DRIVER_TO_USE = 1 if '-f' in argv else 0
+IS_SHORT_PRINTED = '-s' in argv
 
-print("Utilizando Firefox..." if DRIVER_TO_USE == 1 else "Utilizando chrome...")
+if '-h' in argv:
+    print('usage: python get-tasa-bcv.py [options] \n')
+    print('options:')
+    print('  -c      Google Chrome (default driver)')
+    print('  -f      Mozilla Firefox')
+    print('  -s      Short printed')
+    print('  -h      Show this help')
+    exit(0)
 
-print("Consultando tasa de cambio en: ", PARAMETERS["bcv_url"])
+if not IS_SHORT_PRINTED:
+    print("Utilizando Firefox..." if DRIVER_TO_USE == 1 else "Utilizando chrome...")
+    print("Consultando tasa de cambio en: ", PARAMETERS["bcv_url"])
 
 setlocale(LC_ALL, "")
 
@@ -50,6 +58,9 @@ driver.get(PARAMETERS["bcv_url"])
 target = driver.find_element(By.ID, PARAMETERS["rate_field"])
 rate = round(atof((target.text.split("\n")[1])), 2)
 
-print("Tasa $:", rate)
+if IS_SHORT_PRINTED:
+    print(rate)
+else:
+    print("Tasa $:", rate)
 
 driver.close()

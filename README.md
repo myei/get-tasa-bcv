@@ -8,9 +8,6 @@
 
 ## Ejemplo de ejecución:
 
-```shell
-python3.9 get-tasa-bcv.py # Utilizara chrome por defecto
+![Ejemplo de ayuda](https://github.com/myei/get-tasa-bcv/blob/master/examples/Help.png?raw=true)
 
-python3.9 get-tasa-bcv.py -f # Utilizando firefox
-python3.9 get-tasa-bcv.py -c # Utilizando firefox
-```
+![Ejemplo de ejecución](https://github.com/myei/get-tasa-bcv/blob/master/examples/Execution.png?raw=true)
