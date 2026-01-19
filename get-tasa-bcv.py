@@ -24,6 +24,7 @@ if '-h' in argv:
     print('  -u      Get only USD (dolar) rate')
     print('  -e      Get only EUR (euro) rate')
     print('  -n      Generates notification on screen')
+    print('  -f      Forces to get new rates')
     print('  -h      Show this help')
     exit(0)
 
@@ -226,7 +227,7 @@ class RatesScraper:
         self.date = date.today().isoformat()
         self.rates = self.rates_dao.get_cached_rates(self.date)
 
-        if not self.rates:
+        if not self.rates or '-f' in argv:
             self.rates = self.scrape_rates()
     
     def _filter_rates_by_currency(self):
