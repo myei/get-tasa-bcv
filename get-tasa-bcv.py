@@ -9,10 +9,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException, NoSuchElementException, SessionNotCreatedException, TimeoutException
 from locale import setlocale, atof, LC_ALL
 from sys import argv
-import sqlite3
 from datetime import date
-import os
+import sqlite3, os, warnings
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message="The Python dbus package is not installed")
 
 if '-h' in argv:
     print('usage: python get-tasa-bcv.py [options] \n')
@@ -22,11 +23,13 @@ if '-h' in argv:
     print('  -s      Short printed')
     print('  -u      Get only USD (dolar) rate')
     print('  -e      Get only EUR (euro) rate')
+    print('  -n      Generates notification on screen')
     print('  -h      Show this help')
     exit(0)
 
 DRIVER_TO_USE = 1 if '-f' in argv else 0
 IS_SHORT_PRINTED = '-s' in argv
+NOTIFICATION = '-n' in argv
 
 setlocale(LC_ALL, "")
 
@@ -205,6 +208,7 @@ class RatesScraper:
         self.driver_manager = WebDriverManager()
         self.date = None
         self.rates = None
+        self.notification = True if '-n' in argv else False
 
         self.set_rates()
 
@@ -234,9 +238,14 @@ class RatesScraper:
         print("Consultando tasa de cambio en: ", PARAMETERS["bcv_url"])
 
         rates, currencies = self._filter_rates_by_currency()
+        _rates=""
 
         for rate, currency in zip(rates, currencies):
-            print(f"Tasa {currency}:", rate)
+            _rates += "".join(["Tasa ", currency, ": ", str(rate), "\n"])
+
+        print(f"{_rates}")
+
+        
             
     def scrape_rates(self):
         try:
@@ -290,7 +299,26 @@ class RatesScraper:
             finally:
                 self.db_manager.close()
 
+    def show_notification(self):
+        try:
+            from plyer import notification
+        
+            message = f"💵 Tasa Dólar: {self.rates[0]} | 💶 Tasa Euro: {self.rates[1]}"
+            
+            notification.notify(
+                title='💰 Tasas BCV Actualizadas 📈',
+                message=message,
+                app_name='get-tasa-bcv',
+                timeout=10
+            )
+        except ImportError:
+            print("⚠️  plyer no instalado. Usa: pip3 install plyer")
+        except Exception as e:
+            print(f"Error en notificación: {e}")
+
 if IS_SHORT_PRINTED:
     RatesScraper().get_rates_short()
+elif NOTIFICATION:
+    RatesScraper().show_notification()
 else:
     RatesScraper().get_rates_beauty()
