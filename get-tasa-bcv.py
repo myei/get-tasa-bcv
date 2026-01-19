@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException, NoSuchElementException, SessionNotCreatedException, TimeoutException
 from locale import setlocale, atof, LC_ALL
-from sys import argv
+from sys import argv, exit
 from datetime import date
 import sqlite3, os, warnings
 
@@ -36,7 +36,7 @@ setlocale(LC_ALL, "")
 PARAMETERS = {
         "bcv_url": "https://www.bcv.org.ve/",
         "rate_field": ["dolar", "euro"],
-        "db_file": "bcv_rates.db",
+        "db_file": "~/.get-tasa-bcv/bcv_rates.db",
         "browser": {
             "drivers": [webdriver.Chrome, webdriver.Firefox],
             "optionsHandler": [ChromeOptions, FirefoxOptions],
@@ -51,10 +51,20 @@ PARAMETERS = {
     }
 
 class DatabaseManager:
-    def __init__(self, db_file):
-        self.db_file = db_file
+    def __init__(self):
+        self.db_file = PARAMETERS["db_file"]
         self._connection = None
-    
+
+        self.config_db_file()
+
+    def config_db_file(self):
+        expanded_path = os.path.expanduser(self.db_file)
+        db_path = os.path.dirname(expanded_path)
+        if not os.path.exists(db_path):
+            os.makedirs(db_path, mode=0o755, exist_ok=True)
+
+        self.db_file = expanded_path
+
     def get_connection(self):
         if self._connection is None:
             try:
@@ -203,7 +213,7 @@ class WebDriverManager:
 
 class RatesScraper:
     def __init__(self):
-        self.db_manager = DatabaseManager(PARAMETERS["db_file"])
+        self.db_manager = DatabaseManager()
         self.rates_dao = RatesDao(self.db_manager)
         self.driver_manager = WebDriverManager()
         self.date = None
@@ -243,7 +253,8 @@ class RatesScraper:
         for rate, currency in zip(rates, currencies):
             _rates += "".join(["Tasa ", currency, ": ", str(rate), "\n"])
 
-        print(f"{_rates}")
+        print("\n 💰 Tasas BCV Actualizadas 📈 \n")
+        print(f"    💵 Tasa Dólar: {self.rates[0]} \n    💶 Tasa Euro: {self.rates[1]} \n")
 
         
             
