@@ -76,6 +76,8 @@ python get-tasa-bcv.py [opciones]
 - `-u` : Solo mostrar tasa del Dólar (USD)
 - `-e` : Solo mostrar tasa del Euro (EUR)
 - `-n` : Generar notificación en pantalla
+- `--nc` : Generar notificación solo cuando las tasas cambian
+- `--force` : Forzar nueva consulta (ignorar caché)
 - `-h` : Mostrar ayuda
 
 ### Ejemplos de uso
@@ -92,6 +94,9 @@ python get-tasa-bcv.py -s
 
 # Usando Firefox
 python get-tasa-bcv.py -f
+
+# Forzar nueva consulta con notificación
+python get-tasa-bcv.py -n --force
 
 # Usando el ejecutable con notificación
 ./dist/get-tasa-bcv -n
@@ -116,8 +121,8 @@ Esto permite:
 # Editar crontab
 crontab -e
 
-# Consultar cada hora (requiere entorno virtual)
-0 * * * * cd /ruta/al/proyecto && .venv/bin/python get-tasa-bcv.py
+# Consultar cada 30 minutos con notificación (requiere entorno virtual)
+30 * * * * DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus cd /ruta/al/proyecto && .venv/bin/python get-tasa-bcv.py --nc --force
 ```
 
 ### Para el ejecutable standalone:
@@ -125,9 +130,11 @@ crontab -e
 # Editar crontab  
 crontab -e
 
-# Consultar cada hora (sin dependencias)
-0 * * * * /ruta/al/proyecto/dist/get-tasa-bcv -n
+# Consultar cada 30 minutos con notificación (sin dependencias)
+30 * * * * DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus /ruta/al/proyecto/dist/get-tasa-bcv --nc --force
 ```
+
+**Nota:** Las variables `DISPLAY` y `DBUS_SESSION_BUS_ADDRESS` son necesarias para que las notificaciones funcionen correctamente en crontab.
 
 ## 🛠️ Solución de problemas
 
@@ -147,6 +154,9 @@ python get-tasa-bcv.py -f
 
 ### Error: "No module named 'plyer.platforms'"
 Regenera el ejecutable con los hidden-imports correctos (ver sección de instalación).
+
+### Las notificaciones no aparecen en crontab
+Asegúrate de incluir las variables de entorno `DISPLAY` y `DBUS_SESSION_BUS_ADDRESS` en tu configuración de crontab (ver ejemplos de automatización).
 
 ## 📸 Ejemplos de ejecución
 

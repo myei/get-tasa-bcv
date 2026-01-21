@@ -24,6 +24,7 @@ if '-h' in argv:
     print('  -u      Get only USD (dolar) rate')
     print('  -e      Get only EUR (euro) rate')
     print('  -n      Generates notification on screen')
+    print('  --nc     Generates notification on screen when rates change')
     print('  --force Forces to get new rates')
     print('  -h      Show this help')
     exit(0)
@@ -31,6 +32,7 @@ if '-h' in argv:
 DRIVER_TO_USE = 1 if '-f' in argv else 0
 IS_SHORT_PRINTED = '-s' in argv
 NOTIFICATION = '-n' in argv
+NOTIFY_ON_CHANGE = '--nc' in argv
 
 setlocale(LC_ALL, "")
 
@@ -220,6 +222,7 @@ class RatesScraper:
         self.date = None
         self.rates = None
         self.notification = True if '-n' in argv else False
+        self.notify_on_change = True if '-nc' in argv else False
 
         self.set_rates()
 
@@ -228,7 +231,12 @@ class RatesScraper:
         self.rates = self.rates_dao.get_cached_rates(self.date)
 
         if not self.rates or '--force' in argv:
-            self.rates = self.scrape_rates()
+            _new_rates = self.scrape_rates()
+            _rates = self.rates
+
+            self.rates = _new_rates
+            if self.notify_on_change and _new_rates != _rates:
+                self.show_notification(_rates)
     
     def _filter_rates_by_currency(self):
         if '-u' in argv:
@@ -310,13 +318,16 @@ class RatesScraper:
                 pass
             finally:
                 self.db_manager.close()
+    
+    def on_rates_change(self):
+        pass
 
-    def show_notification(self):
+    def show_notification(self, old_rates=None):
         try:
             from plyer import notification
         
-            message = f"💵 Tasa Dólar: {self.rates[0]} | 💶 Tasa Euro: {self.rates[1]}"
-            
+            message = f"💵 Tasa Dólar: {self.rates[0]} {' antes -> ' + str(old_rates[0]) if old_rates else ''} | 💶 Tasa Euro: {self.rates[1]} {' antes -> ' + str(old_rates[1]) if old_rates else ''}"
+
             notification.notify(
                 title='💰 Tasas BCV Actualizadas 📈',
                 message=message,
@@ -330,7 +341,7 @@ class RatesScraper:
 
 if IS_SHORT_PRINTED:
     RatesScraper().get_rates_short()
-elif NOTIFICATION:
+elif NOTIFICATION and not NOTIFY_ON_CHANGE:
     RatesScraper().show_notification()
 else:
     RatesScraper().get_rates_beauty()
