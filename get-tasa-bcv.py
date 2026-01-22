@@ -253,9 +253,6 @@ class RatesScraper:
             print(rate)
     
     def get_rates_beauty(self):
-        print("Utilizando Firefox..." if DRIVER_TO_USE == 1 else "Utilizando chrome...")
-        print("Consultando tasa de cambio en: ", PARAMETERS["bcv_url"])
-
         rates, currencies = self._filter_rates_by_currency()
         _rates=""
 
@@ -269,6 +266,8 @@ class RatesScraper:
             
     def scrape_rates(self):
         try:
+            print("Utilizando Firefox..." if DRIVER_TO_USE == 1 else "Utilizando chrome...")
+            print("Consultando tasa de cambio en: ", PARAMETERS["bcv_url"])
             self.driver_manager.driver.get(PARAMETERS["bcv_url"])
             
             # verificar si la página fue bloqueada
